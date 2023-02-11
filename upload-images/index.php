@@ -1,3 +1,105 @@
+<?php
+session_start();
+?>
+<?php
+class details
+{
+  public $firstName = "";
+  public $lastName = "";
+  // public $imageFile = ""
+
+
+  function __construct($firstName, $lastName, $imageFile)
+  {
+    $this->firstName = $firstName;
+    $this->lastName = $lastName;
+    // $this->imageFile = $imageFile;
+  }
+  function check_data($data)
+  {
+    $data = trim($data);
+    $data = stripslashes($data);
+    $data = htmlspecialchars($data);
+    return $data;
+  }
+  function check_valid($data)
+  {
+    if (!preg_match("/^[a-zA-Z-' ]*$/", $data))
+      return true;
+    else
+      return false;
+  }
+  function check_empty($data)
+  {
+    if (empty($data)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+}
+
+$firstError = $lastError = "";
+$temp = 0;
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+  $person = new details($_POST["firstname"], $_POST["lastname"], $_POST["image"]);
+  $person->firstName = $person->check_data($person->firstName);
+  $person->lastName = $person->check_data($person->lastName);
+  // $person->imageFile = $person->check_image_empty($person->imageFile);
+
+  if ($person->check_valid($person->firstName)) {
+    $firstError = "* Name should contains alphabets only!";
+    $temp = 1;
+  }
+  if ($person->check_valid($person->lastName)) {
+    $lastError = "* Last name should contains alphabets only!";
+    $temp = 1;
+  }
+  if ($person->check_empty($person->firstName)) {
+    $firstError = "* This field can't be empty!";
+    $temp = 1;
+  }
+  if ($person->check_empty($person->lastName)) {
+    $lastError = "* This field can't be empty!";
+    $temp = 1;
+  }
+}
+// print_r($_POST['image']);
+if (isset($_FILES['image'])) {
+  $file_name = $_FILES['image']['name'];
+  $file_size = $_FILES['image']['size'];
+  $file_tmp = $_FILES['image']['tmp_name'];
+  $file_type = $_FILES['image']['type'];
+  $target_dir = "upload-images/";
+  $uploadOk = 1;
+  $imageError = NULL;
+    if ($_FILES["image"]["size"] == 0) {
+      $imageError = "* This field can't be empty!";
+      $uploadOk = 0;
+    }
+    // print_r($_FILES['image']['type']);
+    if (move_uploaded_file($file_tmp, "upload-images/" . $file_name)) {
+      if ($_FILES["image"]["size"] > 3000) {
+        $imageError = "* Sorry your file is too large";
+        $uploadOk  = 0;
+      }
+      if ($_FILES['image']['type'] != "jpg" && $_FILES['image']['type'] != "png" && $_FILES['image']['type'] != "jpeg"
+        && $_FILES['image']['type'] != "gif") {
+        $imageError = "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";
+        $uploadOk = 0;
+      } 
+    }
+  }
+
+
+
+
+
+
+?>
+
+
 <!doctype html>
 <html lang="en">
 
@@ -22,64 +124,6 @@
 </head>
 
 <body>
-<?php
-session_start();
-?>
-<?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-include("classes.php");
-$firstError = $lastError = "";
-$imageError = "";
-$uploadOk = 1;
-$temp = 0;
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-  $person = new details($_POST["firstname"], $_POST["lastname"]);
-  $person->firstName = $person->check_data($person->firstName);
-  $person->lastName = $person->check_data($person->lastName);
-  // $person->imageFile = $person->check_image_empty($person->imageFile);
-
-  if ($person->check_valid($person->firstName)) {
-    $firstError = "* Name should contains alphabets only!";
-    $temp = 1;
-  }
-  if ($person->check_valid($person->lastName)) {
-    $lastError = "* Last name should contains alphabets only!";
-    $temp = 1;
-  }
-  if ($person->check_empty($person->firstName)) {
-    $firstError = "* This field can't be empty!";
-    $temp = 1;
-  }
-  if ($person->check_empty($person->lastName)) {
-    $lastError = "* This field can't be empty!";
-    $temp = 1;
-  }
-
-  if (isset($_FILES['image'])) {
-    $image = new imageClass();
-    $image->imageType = $_FILES['image']['type'];
-    $image->imageName = $_FILES['image']['name'];
-    $image->imageSize = $_FILES['image']['size'];
-    $image->imageTname = $_FILES['image']['tmp_name'];
-    if ($image->imageSize==0) {
-      $imageError = "* This field can't be empty!";
-      $uploadOk = 0;
-    } elseif ($image->imageSize > 3000000) {
-      $imageError = "* Sorry your file is too large";
-      $uploadOk  = 0;
-    } elseif ( $image->imageType != "image/jpg" && $image->imageType != "image/png" && $image->imageType != "image/jpeg" && $image->imageType != "iamge/gif") {
-      $imageError = "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";
-      $uploadOk = 0;
-    }
-    else (move_uploaded_file($image->imageTname , "upload-images/" . $image->imageName ));
-
-  }
-}
-?>
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <a class="navbar-brand" href="#">Innoraft task</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -129,17 +173,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <input type="name" name="lastname" class="form-control" id="exampleInputPassword1" placeholder="Enter last name">
         <span class="red"><?php echo $lastError ?></span>
       </div>
-      <input type="file" name="image" id="filesubmit" class="image-file"><span class="red"><?php echo $imageError; ?></span>
+      <input type="file" name="image" id="filesubmit" class="image-file"><span class="red"><?php echo $imageError ?></span>
       <br>
       <button type="submit" class="btn btn-primary">Submit</button>
     </form>
   </div>
 
   <?php
-  if ($temp == 0 && $uploadOk == 1 && $_SERVER["REQUEST_METHOD"] == "POST") {
+  if ($temp == 0 && $uploadOk = 1 && $_SERVER["REQUEST_METHOD"] == "POST") {
     $_SESSION["firstname"] = $person->firstName;
     $_SESSION["lastname"] = $person->lastName;
-    $_SESSION["image"] = $image->imageName;
     // $_SESSION["lastname"] = $person->lastName;
     header("Location: form.php ");
   }
