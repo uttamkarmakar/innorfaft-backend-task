@@ -1,5 +1,8 @@
 <?php
 session_start();
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -18,13 +21,14 @@ session_start();
         }
 
         .container {
-            height: 900px;
             display: flex;
             justify-content: center;
             align-items: center;
             flex-direction: column;
         }
-
+        body{
+            background-color: skyblue;
+        }
         .hello {
             color: deeppink;
         }
@@ -36,6 +40,7 @@ session_start();
     </style>
 </head>
 
+
 <body>
     <div class="container">
         <div class="img">
@@ -44,10 +49,18 @@ session_start();
         <h2> <span class="hello">Hello</span>
             <?php
             echo $_SESSION["firstname"] . " " . $_SESSION["lastname"];
-            session_destroy();
+
+            // session_destroy();
             ?>
         </h2>
+        <?php
+        if(isset($_SESSION["text-area"])){
+            include("textarea.php");
+        }?>
     </div>
 </body>
 
+<?php
+session_destroy();
+?>
 </html>
